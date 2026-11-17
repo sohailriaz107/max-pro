@@ -1,0 +1,142 @@
+<?php
+//ini_set('display_errors', 1);
+//error_reporting(E_ALL);
+//mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+
+session_start();
+include('../config.php');
+
+// Redirect if not logged in
+if (!isset($_SESSION['admin'])) {
+    header("Location: index.php");
+    exit;
+}
+
+// Time labels
+$time_labels = [
+    "11:00 AM", "11:15 AM", "11:30 AM", "11:45 AM",
+    "12:00 PM", "12:15 PM", "12:30 PM", "12:45 PM",
+    "01:00 PM", "01:15 PM", "01:30 PM", "01:45 PM",
+    "02:00 PM", "02:15 PM", "02:30 PM", "02:45 PM",
+    "03:00 PM", "03:15 PM", "03:30 PM", "03:45 PM",
+    "04:00 PM", "04:15 PM", "04:30 PM", "04:45 PM",
+    "05:00 PM", "05:15 PM", "05:30 PM", "05:45 PM",
+    "06:00 PM", "06:15 PM", "06:30 PM", "06:45 PM",
+    "07:00 PM", "07:15 PM", "07:30 PM", "07:45 PM"
+];
+
+$results = array_fill(0, 36, '');
+$message = "";
+$selected_date = "";
+
+// Load existing data
+if (isset($_POST['load_date'])) {
+    $selected_date = trim($_POST['game_date']);
+
+    if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $selected_date)) {
+        $stmt = mysqli_prepare($con, "SELECT * FROM main_bombay_36 WHERE game_date = ?");
+        mysqli_stmt_bind_param($stmt, "s", $selected_date);
+        mysqli_stmt_execute($stmt);
+        $result = mysqli_stmt_get_result($stmt);
+
+        if (mysqli_num_rows($result) > 0) {
+            $row = mysqli_fetch_assoc($result);
+            for ($i = 1; $i <= 36; $i++) {
+                $results[$i - 1] = $row["col$i"] ?? '';
+            }
+            $message = "<div class='alert alert-info'>Results loaded for $selected_date.</div>";
+        } else {
+            $message = "<div class='alert alert-warning'>No results found for $selected_date.</div>";
+        }
+    } else {
+        $message = "<div class='alert alert-danger'>Invalid date format.</div>";
+    }
+}
+
+// Update results securely
+if (isset($_POST['update_results'])) {
+    $selected_date = trim($_POST['game_date']);
+    $update_parts = [];
+    $values = [];
+
+    for ($i = 1; $i <= 36; $i++) {
+        $col = "col$i";
+        $val = trim($_POST[$col]);
+
+        if (!empty($val) && !preg_match('/^\d{3}-\d{1}$/', $val)) {
+            $message = "<div class='alert alert-danger'>Invalid format in Box $i: '$val'. Format should be 123-4 or blank.</div>";
+            break;
+        }
+
+        $update_parts[] = "`$col` = ?";
+        $values[] = $val === '' ? null : $val;
+    }
+
+    if (empty($message)) {
+        $types = str_repeat("s", count($values));
+        $query = "UPDATE main_bombay_36 SET " . implode(", ", $update_parts) . " WHERE game_date = ?";
+        $values[] = $selected_date;
+        $types .= "s";
+
+        $stmt = mysqli_prepare($con, $query);
+        mysqli_stmt_bind_param($stmt, $types, ...$values);
+        mysqli_stmt_execute($stmt);
+
+        $message = "<div class='alert alert-success'>Results updated successfully for $selected_date.</div>";
+    }
+}
+?>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Past Results – Main Bombay 36</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <div class="container py-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3 class="text-danger">Edit Past Results – Main Bombay 36</h3>
+            <a href="admin.php" class="btn btn-outline-secondary btn-sm">Back to Admin Panel</a>
+        </div>
+
+        <?php if (!empty($message)) echo $message; ?>
+
+        <!-- Date Selection Form -->
+        <form method="post" class="bg-white p-3 shadow-sm rounded mb-4">
+            <div class="row g-2 align-items-end">
+                <div class="col-sm-6">
+                    <label>Select Game Date</label>
+                    <input type="date" name="game_date" value="<?= htmlspecialchars($selected_date) ?>" class="form-control" required>
+                </div>
+                <div class="col-sm-3">
+                    <button type="submit" name="load_date" class="btn btn-danger">Load Results</button>
+                </div>
+            </div>
+        </form>
+
+        <!-- Results Editor -->
+        <?php if (!empty($selected_date) && $results !== array_fill(0, 36, '')): ?>
+            <form method="post" class="bg-white p-4 shadow-sm rounded mb-4">
+                <input type="hidden" name="game_date" value="<?= htmlspecialchars($selected_date) ?>">
+                <div class="row">
+                    <?php for ($i = 1; $i <= 36; $i++): ?>
+                        <div class="col-12 col-md-6 mb-3">
+                            <label class="form-label"><?= $i ?>. <?= $time_labels[$i - 1] ?></label>
+                            <input type="text" name="col<?= $i ?>" value="<?= htmlspecialchars($results[$i - 1]) ?>"
+                                class="form-control" pattern="^\d{3}-\d{1}$" title="Format must be 123-4 or leave blank">
+                        </div>
+                    <?php endfor; ?>
+                </div>
+                <div class="d-grid gap-2 mt-3">
+                    <button type="submit" name="update_results" class="btn btn-success">Update Results</button>
+                </div>
+            </form>
+        <?php endif; ?>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

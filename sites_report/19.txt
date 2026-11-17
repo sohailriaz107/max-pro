@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Private Data - 19 November</title>
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    .container {
+      margin-top: 50px;
+    }
+    .table td, .table th {
+      padding: 2px;
+      margin: 2px;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2 class="text-center">🤑 Collections 🤑</h2>
+    <h3 class="text-center">Data for 19 November</h3>
+    <div class="row">
+      <div class="col-md-4">
+        <h3>Dpboss Play</h3>
+        <div class="table-responsive">
+          <table class="table table-striped table-bordered">
+            <thead>
+              <tr><th>Attribute</th><th>Value</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Today play</td><td>39,72,529</td></tr>
+              <tr><td>Today win</td><td>31,85,423</td></tr>
+              <tr><td>All user balance</td><td>21,18,345</td></tr>
+              <tr><td>Today credit</td><td>16,42,788</td></tr>
+              <tr><td>Today debit</td><td>11,60,875</td></tr>
+              <tr><td>New users</td><td>1,210</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <h3>Mb Play</h3>
+        <div class="table-responsive">
+          <table class="table table-striped table-bordered">
+            <thead>
+              <tr><th>Attribute</th><th>Value</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Today play</td><td>30,91,126</td></tr>
+              <tr><td>Today win</td><td>24,64,738</td></tr>
+              <tr><td>All user balance</td><td>15,91,782</td></tr>
+              <tr><td>Today credit</td><td>12,93,507</td></tr>
+              <tr><td>Today debit</td><td>8,22,111</td></tr>
+              <tr><td>New users</td><td>1,105</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <h3>Om games</h3>
+        <div class="table-responsive">
+          <table class="table table-striped table-bordered">
+            <thead>
+              <tr><th>Attribute</th><th>Value</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Today play</td><td>26,45,862</td></tr>
+              <tr><td>Today win</td><td>21,05,948</td></tr>
+              <tr><td>All user balance</td><td>14,55,734</td></tr>
+              <tr><td>Today credit</td><td>10,97,364</td></tr>
+              <tr><td>Today debit</td><td>6,36,563</td></tr>
+              <tr><td>New users</td><td>1,263</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <h3>jodi99</h3>
+        <div class="table-responsive">
+          <table class="table table-striped table-bordered">
+            <thead>
+              <tr><th>Attribute</th><th>Value</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Today play</td><td>18,94,563</td></tr>
+              <tr><td>Today win</td><td>15,03,987</td></tr>
+              <tr><td>All user balance</td><td>12,18,254</td></tr>
+              <tr><td>Today credit</td><td>8,93,546</td></tr>
+              <tr><td>Today debit</td><td>6,09,991</td></tr>
+              <tr><td>New users</td><td>750</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <h3>Ramdev</h3>
+        <div class="table-responsive">
+          <table class="table table-striped table-bordered">
+            <thead>
+              <tr><th>Attribute</th><th>Value</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Today play</td><td>13,11,534</td></tr>
+              <tr><td>Today win</td><td>10,42,938</td></tr>
+              <tr><td>All user balance</td><td>9,77,567</td></tr>
+              <tr><td>Today credit</td><td>6,72,421</td></tr>
+              <tr><td>Today debit</td><td>4,84,973</td></tr>
+              <tr><td>New users</td><td>506</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <h3>OML</h3>
+        <div class="table-responsive">
+          <table class="table table-striped table-bordered">
+            <thead>
+              <tr><th>Attribute</th><th>Value</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Today play</td><td>15,72,934</td></tr>
+              <tr><td>Today win</td><td>12,56,921</td></tr>
+              <tr><td>All user balance</td><td>10,58,314</td></tr>
+              <tr><td>Today credit</td><td>8,07,312</td></tr>
+              <tr><td>Today debit</td><td>5,67,845</td></tr>
+              <tr><td>New users</td><td>654</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <h3>Satorino1</h3>
+        <div class="table-responsive">
+          <table class="table table-striped table-bordered">
+            <thead>
+              <tr><th>Attribute</th><th>Value</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Today play</td><td>20,57,932</td></tr>
+              <tr><td>Today win</td><td>16,45,213</td></tr>
+              <tr><td>All user balance</td><td>11,28,145</td></tr>
+              <tr><td>Today credit</td><td>9,68,763</td></tr>
+              <tr><td>Today debit</td><td>6,44,319</td></tr>
+              <tr><td>New users</td><td>860</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <p>
+      Total Credit: 53,16,857<br>
+      Total Debit: 37,68,771<br>
+      Profit/Loss: <span style="color: green;">15,48,086</span>
+    </p>
+  </div>
+</body>
+</html>
