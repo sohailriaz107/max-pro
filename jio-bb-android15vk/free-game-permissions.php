@@ -8,8 +8,11 @@ require('functions.php');
 
 if(isset($_GET['fg_permission_id']))
 {
- $sql_query="SELECT * FROM admins WHERE id=".$_GET['fg_permission_id'];
- $result_set=mysqli_query($con,$sql_query);
+ $fgId = (int)$_GET['fg_permission_id'];
+ $stmt = mysqli_prepare($con, "SELECT * FROM admins WHERE id = ?");
+ mysqli_stmt_bind_param($stmt, "i", $fgId);
+ mysqli_stmt_execute($stmt);
+ $result_set = mysqli_stmt_get_result($stmt);
  $fetched_row=mysqli_fetch_array($result_set,MYSQLI_ASSOC);
 }
 else{
@@ -29,7 +32,11 @@ if (isset($_POST['submit'])) {
   if (!empty($_POST['updatePermissions'])) {
     $updatePermissions=$_POST['updatePermissions'];
     $permissions = implode(',',$_POST['updatePermissions']);
-     $query=mysqli_query($con,"UPDATE admins SET `fg_permissions`='$permissions' WHERE id=".$fetched_row['id']);
+     $upStmt = mysqli_prepare($con, "UPDATE admins SET `fg_permissions`=? WHERE id=?");
+     $adminId = (int)$fetched_row['id'];
+     mysqli_stmt_bind_param($upStmt, "si", $permissions, $adminId);
+     $query = mysqli_stmt_execute($upStmt);
+     mysqli_stmt_close($upStmt);
      if ($query) {
        $msg="Free Game Permissions Updated Successfully";
      }
@@ -42,7 +49,7 @@ if (isset($_POST['submit'])) {
    }
 }
 else{
-  $msg="Please Add Free Permissions For User <b class='text-uppercase'>".$fetched_row['username']."</b>";
+  $msg="Please Add Free Permissions For User <b class='text-uppercase'>".htmlspecialchars((string)($fetched_row['username'] ?? ''), ENT_QUOTES, 'UTF-8')."</b>";
 }
 
 ?>

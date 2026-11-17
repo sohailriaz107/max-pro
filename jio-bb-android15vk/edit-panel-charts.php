@@ -66,23 +66,35 @@ if (isset($_POST['update'])) {
 
   $updateDate=date('d/m/Y');
   
-  if (!isset($_POST['fromDate']) AND !isset($_POST['toDate'])) {
-  	if (mysqli_query($con,"UPDATE `panel` SET `a`='$a',`b`='$b',`c`='$c',`d`='$d',`e`='$e',`f`='$f',`g`='$g',`color`='$color',`updateDate`=updateDate WHERE id='$id'")) {
-	    $msg = '<div class="alert alert-success" role="alert">Update Succesfully! <a href="panel-charts.php">Back to chart list</a></div>';
-	  }
-	  else {
-	    $msg = 'fails';
-	  }
-  }
-  else{
-  	$fromDate = $_POST['fromDate'];
-  	$toDate = $_POST['toDate'];
-	  	if (mysqli_query($con,"UPDATE `panel` SET `a`='$a',`b`='$b',`c`='$c',`d`='$d',`e`='$e',`f`='$f',`g`='$g',`color`='$color',`fromDate`='$fromDate',`toDate`='$toDate',`updateDate`=updateDate WHERE id='$id'")) {
-	    $msg = '<div class="alert alert-success" role="alert">Update Succesfully! <a href="panel-charts.php">Back to chart list</a></div>';
-	  }
-	  else {
-	    $msg = 'fails';
-	  }
+  $fromDate = isset($_POST['fromDate']) ? trim((string)$_POST['fromDate']) : '';
+  $toDate   = isset($_POST['toDate']) ? trim((string)$_POST['toDate']) : '';
+
+  if ($fromDate === '' && $toDate === '') {
+      $stmt = mysqli_prepare($con, "UPDATE `panel` SET `a`=?, `b`=?, `c`=?, `d`=?, `e`=?, `f`=?, `g`=?, `color`=? WHERE `id`=?");
+      if ($stmt) {
+          mysqli_stmt_bind_param($stmt, "ssssssssi", $a, $b, $c, $d, $e, $f, $g, $color, $id);
+          if (mysqli_stmt_execute($stmt)) {
+              $msg = '<div class="alert alert-success" role="alert">Update Succesfully! <a href="panel-charts.php">Back to chart list</a></div>';
+          } else {
+              $msg = 'fails';
+          }
+          mysqli_stmt_close($stmt);
+      } else {
+          $msg = 'fails';
+      }
+  } else {
+      $stmt = mysqli_prepare($con, "UPDATE `panel` SET `a`=?, `b`=?, `c`=?, `d`=?, `e`=?, `f`=?, `g`=?, `color`=?, `fromDate`=?, `toDate`=? WHERE `id`=?");
+      if ($stmt) {
+          mysqli_stmt_bind_param($stmt, "ssssssssssi", $a, $b, $c, $d, $e, $f, $g, $color, $fromDate, $toDate, $id);
+          if (mysqli_stmt_execute($stmt)) {
+              $msg = '<div class="alert alert-success" role="alert">Update Succesfully! <a href="panel-charts.php">Back to chart list</a></div>';
+          } else {
+              $msg = 'fails';
+          }
+          mysqli_stmt_close($stmt);
+      } else {
+          $msg = 'fails';
+      }
   }
   
   // Prepare log content

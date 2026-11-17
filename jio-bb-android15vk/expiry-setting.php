@@ -1,51 +1,60 @@
 <?php 
-session_start();
-$pageName = 'expiry-setting';
-require('sessions.php');
-require "../config.php";
-require "illegal.php";
-require('functions.php');
+declare(strict_types=1);
 
-$filePath = "../txtdb/expiry.txt";
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+$pageName = 'expiry-setting';
+require_once __DIR__ . '/sessions.php';
+require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/illegal.php';
+require_once __DIR__ . '/functions.php';
+
+$filePath = __DIR__ . "/../txtdb/expiry.txt";
 $msg = "";
 
-// Step 1: Read current expiry data
-$markets = [];
-if (file_exists($filePath)) {
-    $lines = file($filePath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-    foreach ($lines as $line) {
-        $parts = explode('|', trim($line));
-        if (count($parts) == 2) {
-            $markets[] = ['name' => trim($parts[0]), 'expiry' => trim($parts[1])];
+// Helper to read markets safely
+$readMarkets = function(string $path): array {
+    $markets = [];
+    if (file_exists($path)) {
+        $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        if (is_array($lines)) {
+            foreach ($lines as $line) {
+                $parts = explode('|', trim($line));
+                if (count($parts) >= 2) {
+                    $markets[] = ['name' => trim($parts[0]), 'expiry' => trim($parts[1])];
+                }
+            }
         }
     }
-}
+    return $markets;
+};
+
+// Step 1: Read current expiry data
+$markets = $readMarkets($filePath);
 
 // Step 2: When form submitted, update expiry file
-if (isset($_POST['update_expiry'])) {
+if (isset($_POST['update_expiry']) && isset($_POST['market_name']) && is_array($_POST['market_name'])) {
     $updatedMarkets = [];
     foreach ($_POST['market_name'] as $index => $mName) {
-        $expiry = trim($_POST['expiry_date'][$index]);
-        if ($expiry == '') $expiry = date('Y-m-d'); // fallback to current date if empty
-        $updatedMarkets[] = $mName . "|" . $expiry;
+        $safeName = str_replace(["|", "\r", "\n"], '', (string)$mName);
+        $rawExpiry = isset($_POST['expiry_date'][$index]) ? trim((string)$_POST['expiry_date'][$index]) : '';
+        $safeExpiry = str_replace(["|", "\r", "\n"], '', $rawExpiry);
+        if ($safeExpiry === '') {
+            $safeExpiry = date('Y-m-d'); // fallback to current date if empty
+        }
+        $updatedMarkets[] = $safeName . "|" . $safeExpiry;
     }
 
     // Save all back into file
-    file_put_contents($filePath, implode("\n", $updatedMarkets) . "\n");
+    file_put_contents($filePath, implode("\n", $updatedMarkets) . "\n", LOCK_EX);
 
     $msg = "<div class='alert alert-success text-center'>
                 ✅ Expiry dates updated successfully.
             </div>";
 
     // Refresh data after update
-    $markets = [];
-    $lines = file($filePath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-    foreach ($lines as $line) {
-        $parts = explode('|', trim($line));
-        if (count($parts) == 2) {
-            $markets[] = ['name' => trim($parts[0]), 'expiry' => trim($parts[1])];
-        }
-    }
+    $markets = $readMarkets($filePath);
 }
 ?>
 <!DOCTYPE html>
@@ -83,7 +92,7 @@ if (isset($_POST['update_expiry'])) {
 
 		<hr />
 		
-		<?php echo $msg; ?>
+		<?php if (!empty($msg)) echo $msg; ?>
 
 		<div class="row">
 			<div class="col-md-8 col-md-offset-2">
@@ -98,18 +107,18 @@ if (isset($_POST['update_expiry'])) {
 									<div class="form-group">
 										<label class="col-sm-4 control-label">Market Name</label>
 										<div class="col-sm-4">
-											<input type="text" name="market_name[]" class="form-control" value="<?php echo htmlspecialchars($m['name']); ?>" readonly>
+											<input type="text" name="market_name[]" class="form-control" value="<?php echo htmlspecialchars((string)$m['name'], ENT_QUOTES, 'UTF-8'); ?>" readonly>
 										</div>
 										<div class="col-sm-4">
-											<input type="date" name="expiry_date[]" class="form-control" value="<?php echo htmlspecialchars($m['expiry']); ?>" required>
+											<input type="date" name="expiry_date[]" class="form-control" value="<?php echo htmlspecialchars((string)$m['expiry'], ENT_QUOTES, 'UTF-8'); ?>">
 										</div>
 									</div>
 								<?php } ?>
 								<div class="form-group text-center">
-									<button type="submit" name="update_expiry" class="btn btn-success">Update All Expiry Dates</button>
+									<button type="submit" name="update_expiry" class="btn btn-success">Update Expiry Dates</button>
 								</div>
 							<?php } else { ?>
-								<div class="alert alert-warning text-center">No markets found in expiry.txt</div>
+								<p class="text-center text-muted">No expiry data found in expiry.txt.</p>
 							<?php } ?>
 						</form>
 					</div>
@@ -121,13 +130,12 @@ if (isset($_POST['update_expiry'])) {
 	</div>
 </div>
 
-<script src="assets/js/gsap/TweenMax.min.js"></script>
-<script src="assets/js/jquery-ui/js/jquery-ui-1.10.3.minimal.min.js"></script>
-<script src="assets/js/bootstrap.js"></script>
-<script src="assets/js/joinable.js"></script>
-<script src="assets/js/resizeable.js"></script>
-<script src="assets/js/neon-api.js"></script>
-<script src="assets/js/neon-custom.js"></script>
-<script src="assets/js/neon-demo.js"></script>
+	<!-- Bottom scripts -->
+	<script src="assets/js/gsap/TweenMax.min.js"></script>
+	<script src="assets/js/jquery-ui/js/jquery-ui-1.10.3.minimal.min.js"></script>
+	<script src="assets/js/bootstrap.js"></script>
+	<script src="assets/js/joinable.js"></script>
+	<script src="assets/js/resizeable.js"></script>
+	<script src="assets/js/neon-api.js"></script>
 </body>
 </html>

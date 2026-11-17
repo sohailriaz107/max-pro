@@ -8,8 +8,11 @@ require('functions.php');
 
 if(isset($_GET['permission_id']))
 {
- $sql_query="SELECT * FROM admins WHERE id=".$_GET['permission_id'];
- $result_set=mysqli_query($con,$sql_query);
+ $permission_id = (int)$_GET['permission_id'];
+ $stmt = mysqli_prepare($con, "SELECT * FROM admins WHERE id = ?");
+ mysqli_stmt_bind_param($stmt, "i", $permission_id);
+ mysqli_stmt_execute($stmt);
+ $result_set = mysqli_stmt_get_result($stmt);
  $fetched_row=mysqli_fetch_array($result_set,MYSQLI_ASSOC);
 }
 else{
@@ -38,7 +41,11 @@ if (isset($_POST['submit'])) {
     else{
     	$numPermission = '0';
     }
-     $query=mysqli_query($con,"UPDATE admins SET `permissions`='$permissions', `number_permissions`='$numPermission' WHERE id=".$fetched_row['id']);
+     $upStmt = mysqli_prepare($con, "UPDATE admins SET `permissions`=?, `number_permissions`=? WHERE id=?");
+     $adminId = (int)$fetched_row['id'];
+     mysqli_stmt_bind_param($upStmt, "ssi", $permissions, $numPermission, $adminId);
+     $query = mysqli_stmt_execute($upStmt);
+     mysqli_stmt_close($upStmt);
      if ($query) {
        $msg="Permissions Updated Successfully";
      }
@@ -51,7 +58,7 @@ if (isset($_POST['submit'])) {
    }
 }
 else{
-  $msg="Please Add Market Permissions For User <b class='text-uppercase'>".$fetched_row['username']."</b>";
+  $msg="Please Add Market Permissions For User <b class='text-uppercase'>".htmlspecialchars((string)($fetched_row['username'] ?? ''), ENT_QUOTES, 'UTF-8')."</b>";
 }
 
 ?>

@@ -25,9 +25,9 @@
 					$err_code		=	$err_data['code'];
 					$err_no			=	$err_data['no'];
 					$err_msg		=	$err_data['msg'];
-					$err_dmsg		=	($err_code == 'err1')?"Error connecting to server ..."
-										:($err_code == 'err2')?"Error connecting to server ..."
-										:"Error connecting to server ...";
+					$err_dmsg		=	($err_code == 'err1') ? "Error connecting to server ..."
+										: (($err_code == 'err2') ? "Error connecting to server ..."
+										: "Error connecting to server ...");
 				}
 			break;
 			default:

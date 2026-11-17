@@ -18,49 +18,67 @@ if (isset($_SESSION['username'])) {
 $start=0;
 $limit=100;
 
-if(isset($_GET['id']))
-{
-  $id=$_GET['id'];
-  $start=($id-1)*$limit;
-}
-else{
-  $id=1;
-}
-$query=mysqli_query($con,"select * from panel order by id DESC LIMIT $start, $limit");
+$id = isset($_GET['id']) ? max(1, (int)$_GET['id']) : 1;
+$start = ($id - 1) * $limit;
 
-//fetch all the data from database.
-$rows=mysqli_num_rows(mysqli_query($con,"select * from panel"));
-
-if(isset($_GET['delete_id']))
-{
- $sql_query="DELETE FROM panel WHERE id=".$_GET['delete_id'];
- mysqli_query($con,$sql_query);
- header("Location: $_SERVER[PHP_SELF]");
+if (isset($_GET['delete_id']) && isset($con) && $con instanceof mysqli) {
+    $delId = (int)$_GET['delete_id'];
+    $delStmt = mysqli_prepare($con, "DELETE FROM panel WHERE id = ?");
+    if ($delStmt) {
+        mysqli_stmt_bind_param($delStmt, "i", $delId);
+        mysqli_stmt_execute($delStmt);
+        mysqli_stmt_close($delStmt);
+    }
+    header("Location: panel-charts.php");
+    exit;
 }
 
-//search data
-$file='../txtdb/xzavierJoaquinosia.txt';
-$lines= file($file);
-if (isset($_POST['searchMarket'])) {
-	$gameName = $_POST['gameName'];
-	$fromDate = date('d-m-Y',strtotime($_POST['fromDate']));
-	$toDate = date('d-m-Y',strtotime($_POST['toDate']));
+$file = __DIR__ . '/../txtdb/xzavierJoaquinosia.txt';
+$lines = (file_exists($file) && is_readable($file)) ? (file($file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) ?: []) : [];
 
-	$rows=mysqli_num_rows(mysqli_query($con,"SELECT * FROM `panel` WHERE `gameName` LIKE '$gameName'"));
+$query = null;
+$rows = 0;
 
-	if ($fromDate=="01-01-1970"||$toDate=="01-01-1970") {
-		$query = mysqli_query($con,"SELECT * FROM `panel` WHERE `gameName` LIKE '$gameName'");
-		$msg = "Found <b>".mysqli_num_rows($query). "</b> rows";
-	}
-	else{
-	$query = mysqli_query($con,"SELECT * FROM `panel` WHERE `gameName` LIKE '$gameName' AND updateDate >= '$fromDate' AND updateDate <= '$toDate'");
-		$msg = "Found <b>".mysqli_num_rows($query). "</b> rows";
-	}
+if (isset($_POST['searchMarket']) && isset($con) && $con instanceof mysqli) {
+    $gameName = trim((string)($_POST['gameName'] ?? ''));
+    $fromTs = !empty($_POST['fromDate']) ? strtotime((string)$_POST['fromDate']) : false;
+    $toTs   = !empty($_POST['toDate']) ? strtotime((string)$_POST['toDate']) : false;
+    $fromDate = ($fromTs !== false) ? date('d-m-Y', $fromTs) : '01-01-1970';
+    $toDate   = ($toTs !== false) ? date('d-m-Y', $toTs) : '01-01-1970';
+
+    if ($fromDate === '01-01-1970' || $toDate === '01-01-1970') {
+        $stmt = mysqli_prepare($con, "SELECT * FROM `panel` WHERE `gameName` = ? ORDER BY id DESC");
+        if ($stmt) {
+            mysqli_stmt_bind_param($stmt, "s", $gameName);
+            mysqli_stmt_execute($stmt);
+            $query = mysqli_stmt_get_result($stmt);
+            $rows = $query ? mysqli_num_rows($query) : 0;
+            $msg = "Found <b>" . $rows . "</b> rows";
+        }
+    } else {
+        $stmt = mysqli_prepare($con, "SELECT * FROM `panel` WHERE `gameName` = ? AND updateDate >= ? AND updateDate <= ? ORDER BY id DESC");
+        if ($stmt) {
+            mysqli_stmt_bind_param($stmt, "sss", $gameName, $fromDate, $toDate);
+            mysqli_stmt_execute($stmt);
+            $query = mysqli_stmt_get_result($stmt);
+            $rows = $query ? mysqli_num_rows($query) : 0;
+            $msg = "Found <b>" . $rows . "</b> rows";
+        }
+    }
+} else if (isset($con) && $con instanceof mysqli) {
+    $countRes = mysqli_query($con, "SELECT COUNT(*) as total FROM panel");
+    if ($countRes && ($cRow = mysqli_fetch_assoc($countRes))) {
+        $rows = (int)($cRow['total'] ?? 0);
+    }
+    $listStmt = mysqli_prepare($con, "SELECT * FROM panel ORDER BY id DESC LIMIT ?, ?");
+    if ($listStmt) {
+        mysqli_stmt_bind_param($listStmt, "ii", $start, $limit);
+        mysqli_stmt_execute($listStmt);
+        $query = mysqli_stmt_get_result($listStmt);
+    }
 }
-//end search data
 
-//calculate total page number for the given table in the database 
-$total=ceil($rows/$limit);
+$total = ($limit > 0) ? (int)ceil($rows / $limit) : 1;
 ?>
 <!DOCTYPE html>
 <html lang="en-in">

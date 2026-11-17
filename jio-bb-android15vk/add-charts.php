@@ -152,11 +152,16 @@ if(isset($_POST['add-charts'])) {
 						continue;
 					}
 				
-					// Build and execute the query
-					$query = "INSERT INTO `panel` (`gameName`, `a`, `b`, `c`, `d`, `e`, `f`, `g`, `color`, `frequency`, `fromDate`, `toDate`, `updateDate`) 
-							  VALUES ('$gName', '$oa', '$ob', '$oc', '$jodi', '$ca', '$cb', '$cc', '$color', '$freq', '$fromDate', '$toDate', '$updateDate')";
-				
-					if (!mysqli_query($con, $query)) {
+					$stmt = mysqli_prepare($con, "INSERT INTO `panel` (`gameName`, `a`, `b`, `c`, `d`, `e`, `f`, `g`, `color`, `frequency`, `fromDate`, `toDate`, `updateDate`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+					if ($stmt) {
+						mysqli_stmt_bind_param($stmt, "sssssssssssss", $gName, $oa, $ob, $oc, $jodi, $ca, $cb, $cc, $color, $freq, $fromDate, $toDate, $updateDate);
+						if (!mysqli_stmt_execute($stmt)) {
+							$success = false;
+							mysqli_stmt_close($stmt);
+							break;
+						}
+						mysqli_stmt_close($stmt);
+					} else {
 						$success = false;
 						break;
 					}
@@ -295,11 +300,16 @@ if(isset($_POST['add-charts'])) {
 						continue;
 					}
 				
-					// Build and execute the query
-					$query = "INSERT INTO `panel` (`gameName`, `a`, `b`, `c`, `d`, `e`, `f`, `g`, `color`, `frequency`, `fromDate`, `toDate`, `updateDate`) 
-							  VALUES ('$gName', '$oa', '$ob', '$oc', '$jodi', '$ca', '$cb', '$cc', '$color', '$freq', '$fromDate', '$toDate', '$updateDate')";
-				
-					if (!mysqli_query($con, $query)) {
+					$stmt = mysqli_prepare($con, "INSERT INTO `panel` (`gameName`, `a`, `b`, `c`, `d`, `e`, `f`, `g`, `color`, `frequency`, `fromDate`, `toDate`, `updateDate`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+					if ($stmt) {
+						mysqli_stmt_bind_param($stmt, "sssssssssssss", $gName, $oa, $ob, $oc, $jodi, $ca, $cb, $cc, $color, $freq, $fromDate, $toDate, $updateDate);
+						if (!mysqli_stmt_execute($stmt)) {
+							$success = false;
+							mysqli_stmt_close($stmt);
+							break;
+						}
+						mysqli_stmt_close($stmt);
+					} else {
 						$success = false;
 						break;
 					}
@@ -420,11 +430,16 @@ if(isset($_POST['add-charts'])) {
 						continue;
 					}
 				
-					// Build and execute the query
-					$query = "INSERT INTO `panel` (`gameName`, `a`, `b`, `c`, `d`, `e`, `f`, `g`, `color`, `frequency`, `fromDate`, `toDate`, `updateDate`) 
-							  VALUES ('$gName', '$oa', '$ob', '$oc', '$jodi', '$ca', '$cb', '$cc', '$color', '$freq', '$fromDate', '$toDate', '$updateDate')";
-				
-					if (!mysqli_query($con, $query)) {
+					$stmt = mysqli_prepare($con, "INSERT INTO `panel` (`gameName`, `a`, `b`, `c`, `d`, `e`, `f`, `g`, `color`, `frequency`, `fromDate`, `toDate`, `updateDate`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+					if ($stmt) {
+						mysqli_stmt_bind_param($stmt, "sssssssssssss", $gName, $oa, $ob, $oc, $jodi, $ca, $cb, $cc, $color, $freq, $fromDate, $toDate, $updateDate);
+						if (!mysqli_stmt_execute($stmt)) {
+							$success = false;
+							mysqli_stmt_close($stmt);
+							break;
+						}
+						mysqli_stmt_close($stmt);
+					} else {
 						$success = false;
 						break;
 					}

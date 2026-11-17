@@ -7,39 +7,34 @@ require "illegal.php";
 require('functions.php');
 $today=date('d-m-Y');
 
-// echo memory_get_usage();
 if(isset($_POST['addMarket'])) {
+  $clean = fn($k) => str_replace('|', '', trim((string)($_POST[$k] ?? '')));
+  $livePriority   = $clean('livePriority');
+  $gameName       = $clean('gameName');
+  $result         = $clean('result');
+  $timeOpen       = $clean('timeOpen');
+  $timeClose      = $clean('timeClose');
+  $bgColor        = $clean('bgColor');
+  $fontColor      = $clean('fontColor');
+  $lineColor      = $clean('lineColor');
+  $frequency      = $clean('frequency');
+  $liveTimeBefore = $clean('liveTimeBefore');
+  $liveTimeAfter  = $clean('liveTimeAfter');
+  $updateDate     = $clean('updateDate');
+  $status         = $clean('status');
+  $expiryDate     = $clean('expiryDate');
+  $jodiLink       = $clean('jodiLink');
+  $panelLink      = $clean('panelLink');
 
-  
-$livePriority = htmlspecialchars(mysqli_real_escape_string($con, $_POST['livePriority']));
-$gameName = htmlspecialchars(mysqli_real_escape_string($con, $_POST['gameName']));
-$result = htmlspecialchars(mysqli_real_escape_string($con, $_POST['result']));
-$timeOpen = htmlspecialchars(mysqli_real_escape_string($con, $_POST['timeOpen']));
-$timeClose = htmlspecialchars(mysqli_real_escape_string($con, $_POST['timeClose']));
-$bgColor = htmlspecialchars(mysqli_real_escape_string($con, $_POST['bgColor']));
-$fontColor = htmlspecialchars(mysqli_real_escape_string($con, $_POST['fontColor']));
-$lineColor = htmlspecialchars(mysqli_real_escape_string($con, $_POST['lineColor']));
-$frequency = htmlspecialchars(mysqli_real_escape_string($con, $_POST['frequency']));
-$liveTimeBefore = htmlspecialchars(mysqli_real_escape_string($con, $_POST['liveTimeBefore']));
-$liveTimeAfter = htmlspecialchars(mysqli_real_escape_string($con, $_POST['liveTimeAfter']));
-$updateDate = htmlspecialchars(mysqli_real_escape_string($con, $_POST['updateDate']));
-$status = htmlspecialchars(mysqli_real_escape_string($con, $_POST['status']));
-$expiryDate = htmlspecialchars(mysqli_real_escape_string($con, $_POST['expiryDate']));
-$jodiLink = htmlspecialchars(mysqli_real_escape_string($con, $_POST['jodiLink']));
-$panelLink = htmlspecialchars(mysqli_real_escape_string($con, $_POST['panelLink']));
+  $data = $livePriority . '|' . $gameName . '|' . $result . '|' . $timeOpen . '|' . $timeClose . '|' . $bgColor . '|' . $fontColor . '|' . $lineColor . '|' . $frequency . '|' . $liveTimeBefore . '|' . $liveTimeAfter . '|' . $updateDate . '|' . $status . '|' . $expiryDate . '|' . $jodiLink . '|' . $panelLink . "\n";
 
-$data = $livePriority . '|' . $gameName . '|' . $result . '|' . $timeOpen . '|' . $timeClose . '|' . $bgColor . '|' . $fontColor . '|' . $lineColor . '|' . $frequency . '|' . $liveTimeBefore . '|' . $liveTimeAfter . '|' . $updateDate . '|' . $status . '|' . $expiryDate . '|' . $jodiLink . '|' . $panelLink . "\n";
-
-	$myFile = "../txtdb/xzavierJoaquinosia.txt";
-     $fh = fopen($myFile, 'a') or die("can't open file");
-     $write=fwrite($fh, $data);
-    if ($write) {
-      $msg='<div class="alert alert-success">Market Added Successfully!</div>';
-    }
-    else{
-      $msg='<div class="alert alert-danger">Something Wrong!</div>';
-    }
-    fclose ($fh);
+  $myFile = __DIR__ . "/../txtdb/xzavierJoaquinosia.txt";
+  $write = file_put_contents($myFile, $data, FILE_APPEND | LOCK_EX);
+  if ($write !== false) {
+    $msg = '<div class="alert alert-success">Market Added Successfully!</div>';
+  } else {
+    $msg = '<div class="alert alert-danger">Something Wrong!</div>';
+  }
 }
 else{
   $msg='Add New Market';

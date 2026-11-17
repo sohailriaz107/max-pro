@@ -1,174 +1,156 @@
 <?php
-$expirtyFile='../txtdb/xzavierJoaquinosia.txt';
+declare(strict_types=1);
 
-$expiryLines= file($expirtyFile);
-$ExpiryQuery=mysqli_query($con,"SELECT id, permissions FROM admins WHERE id=".$_SESSION['id']);
-while($result=mysqli_fetch_array($ExpiryQuery))
-{
-  $expiryPermissions = explode(',',$result['permissions']);
+$expirtyFile = __DIR__ . '/../txtdb/xzavierJoaquinosia.txt';
+$expiryLines = (file_exists($expirtyFile) && is_readable($expirtyFile)) ? (file($expirtyFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) ?: []) : [];
+
+$userId = (int)($_SESSION['id'] ?? 0);
+$expiryPermissions = [];
+
+if ($userId > 0 && isset($con) && $con instanceof mysqli) {
+    try {
+        $stmt = mysqli_prepare($con, "SELECT permissions FROM admins WHERE id = ? LIMIT 1");
+        if ($stmt) {
+            mysqli_stmt_bind_param($stmt, "i", $userId);
+            mysqli_stmt_execute($stmt);
+            $res = mysqli_stmt_get_result($stmt);
+            if ($res && ($result = mysqli_fetch_assoc($res))) {
+                $expiryPermissions = explode(',', (string)($result['permissions'] ?? ''));
+            }
+            mysqli_stmt_close($stmt);
+        }
+    } catch (Throwable $e) {
+        error_log("Header permissions query error: " . $e->getMessage());
+    }
 }
+
 $counter = 0;
-foreach ($expiryLines as $line_num => $line) {
+foreach ($expiryLines as $line) {
+    $parts = explode("|", (string)$line);
+    $gName = trim((string)($parts[1] ?? ''));
+    if ($gName !== '' && in_array($gName, $expiryPermissions, true)) {
+        $counter++;
+    }
+}
 
-  list($order, $gameName, $gameResult, $timeOpen, $timeClose, $gameBgcolor, $gameFontcolor, $frequency, $liveTimeBefore, $liveTimeAfter, $updateDate, $status)=explode("|", $line);
-  if (in_array($gameName, $expiryPermissions)) {
-	$counter++;
-}
-}
-?>
-<!-- test start -->
-<?php 
-if ($counter>=1) {
 $noti = 0;
-	foreach ($expiryLines as $line_num => $line) {
-
-  list($order, $gameName, $gameResult, $timeOpen, $timeClose, $gameBgcolor, $gameFontcolor, $frequency, $liveTimeBefore, $liveTimeAfter, $updateDate, $status, $expiryDate)=explode("|", $line);
-  if (in_array($gameName, $expiryPermissions)) {
-		// start date difference logic
-
-            $date1 = str_replace('/', '-', date('Y-m-d')); 
-            $date2 = str_replace('/', '-', $expiryDate);
-            $calcDiff = dateDiffInDays($date1, $date2); 
-  		//end date difference logic
-        if ($calcDiff>=0 && $calcDiff<=5) {
-        	if (strtotime($date1)<=strtotime($date2)) {
-        		$noti++;
-?>
-<?php
-}
-}
-
-}
-}
-$notiNumber = $noti;
-}
-else{
 $notiNumber = '0';
-}
-?>	
-<!-- test end -->
-<div class="col-md-6 col-sm-8 clearfix">
-		
-				<ul class="user-info pull-left pull-none-xsm">
-		
-					<!-- Profile Info -->
-					<li class="profile-info dropdown"><!-- add class "pull-right" if you want to place this from right -->
-		
-						<a href="#">
-							Welcome, <b><?php echo $_SESSION['username']; ?></b>
-						</a>
-					</li>
-		
-				</ul>
-				
-				<ul class="user-info pull-left pull-right-xs pull-none-xsm">
-		
-					<!-- Raw Notifications -->
-					<li class="notifications dropdown <?php if ($_SESSION['username']!='vk') { if($notiNumber>=1){echo 'open';}} ?>">
-		
-						<a href="#" class="dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-close-others="true">
-							<i class="entypo-attention"></i>
-							<span class="badge badge-info">
-<?php echo $notiNumber; ?>
-							</span>
-						</a>
-		
-						<ul class="dropdown-menu">
-							<li class="top">
-								<p class="small">
-									<?php if ($_SESSION['username']=='vk') {?>
-										<!-- <a href="#" class="pull-right">Mark all Read</a> -->
-									<?php } ?>
-									You have <?php if ($noti>=1) {echo $noti;}else {echo 'no';}?> new notifications.
-								</p>
-							</li>
-							
-							<li>
-								<ul class="dropdown-menu-list scroller">
-<?php 
-if ($counter>=1) {
-	foreach ($expiryLines as $line_num => $line) {
 
-  list($order, $gameName, $gameResult, $timeOpen, $timeClose, $gameBgcolor, $gameFontcolor, $frequency, $liveTimeBefore, $liveTimeAfter, $updateDate, $status, $expiryDate)=explode("|", $line);
-  if (in_array($gameName, $expiryPermissions)) {
-		// start date difference logic
+if ($counter >= 1) {
+    foreach ($expiryLines as $line) {
+        $parts = explode("|", (string)$line);
+        $gName = trim((string)($parts[1] ?? ''));
+        $expiryDate = trim((string)($parts[12] ?? $parts[13] ?? ''));
 
+        if ($gName !== '' && in_array($gName, $expiryPermissions, true) && $expiryDate !== '') {
             $date1 = str_replace('/', '-', date('Y-m-d')); 
             $date2 = str_replace('/', '-', $expiryDate);
             $calcDiff = dateDiffInDays($date1, $date2); 
-  		//end date difference logic
-        if ($calcDiff>=1 && $calcDiff<=5) {
-        	if (strtotime($date1)<strtotime($date2)) {
-?>
-									<li class="unread notification-info">
-										<a href="#">
-											<i class="entypo-info pull-right"></i>
+            
+            if ($calcDiff >= 0 && $calcDiff <= 5) {
+                $t1 = strtotime($date1);
+                $t2 = strtotime($date2);
+                if ($t1 !== false && $t2 !== false && $t1 <= $t2) {
+                    $noti++;
+                }
+            }
+        }
+    }
+    $notiNumber = (string)$noti;
+}
 
-											<span class="line">
+$currentUsername = (string)($_SESSION['username'] ?? '');
+?>	
+<div class="col-md-6 col-sm-8 clearfix">
+    <ul class="user-info pull-left pull-none-xsm">
+        <li class="profile-info dropdown">
+            <a href="#">
+                Welcome, <b><?php echo htmlspecialchars($currentUsername, ENT_QUOTES, 'UTF-8'); ?></b>
+            </a>
+        </li>
+    </ul>
+    
+    <ul class="user-info pull-left pull-right-xs pull-none-xsm">
+        <li class="notifications dropdown <?php if ($currentUsername !== 'vk' && $noti >= 1) { echo 'open'; } ?>">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-close-others="true">
+                <i class="entypo-attention"></i>
+                <span class="badge badge-info">
+                    <?php echo htmlspecialchars($notiNumber, ENT_QUOTES, 'UTF-8'); ?>
+                </span>
+            </a>
+
+            <ul class="dropdown-menu">
+                <li class="top">
+                    <p class="small">
+                        You have <?php echo ($noti >= 1) ? $noti : 'no'; ?> new notifications.
+                    </p>
+                </li>
+                
+                <li>
+                    <ul class="dropdown-menu-list scroller">
 <?php 
-if (isset($_SESSION['username'])) {
-  if ($_SESSION['username']=='vk') {
-?>
-<strong><?php echo $gameName ?> is going to expire in <?php echo $calcDiff ?> days</strong>
-<?php }else{ ?>
+if ($counter >= 1) {
+    foreach ($expiryLines as $line) {
+        $parts = explode("|", (string)$line);
+        $gName = trim((string)($parts[1] ?? ''));
+        $expiryDate = trim((string)($parts[12] ?? $parts[13] ?? ''));
 
-												<strong>You have <?php echo $calcDiff ?> days left to renew <?php echo $gameName ?></strong>
-<?php }} ?>
-											</span>
-										</a>
-									</li>
+        if ($gName !== '' && in_array($gName, $expiryPermissions, true) && $expiryDate !== '') {
+            $date1 = str_replace('/', '-', date('Y-m-d')); 
+            $date2 = str_replace('/', '-', $expiryDate);
+            $calcDiff = dateDiffInDays($date1, $date2); 
+            $t1 = strtotime($date1);
+            $t2 = strtotime($date2);
+
+            if ($calcDiff >= 1 && $calcDiff <= 5 && $t1 !== false && $t2 !== false && $t1 < $t2) {
+?>
+                        <li class="unread notification-info">
+                            <a href="#">
+                                <i class="entypo-info pull-right"></i>
+                                <span class="line">
+<?php if ($currentUsername === 'vk') { ?>
+                                    <strong><?php echo htmlspecialchars($gName, ENT_QUOTES, 'UTF-8'); ?> is going to expire in <?php echo $calcDiff; ?> days</strong>
+<?php } else { ?>
+                                    <strong>You have <?php echo $calcDiff; ?> days left to renew <?php echo htmlspecialchars($gName, ENT_QUOTES, 'UTF-8'); ?></strong>
+<?php } ?>
+                                </span>
+                            </a>
+                        </li>
 <?php
-}
-}
-elseif ($calcDiff==0) {
+            } elseif ($calcDiff === 0 && $t1 !== false && $t2 !== false) {
 ?>
-<li class="unread notification-danger">
-										<a href="#">
-											<i class="entypo-cancel-circled pull-right"></i>
-
-											<span class="line">
-<?php 
-if (isset($_SESSION['username'])) {
-  if ($_SESSION['username']=='vk') {
-?>
-<strong><?php echo $gameName ?> has expired. Please remind user to renew.</strong>
-<?php }else{ ?>
-
-												<strong>Your plan has expired for <?php echo $gameName ?>. Please Renew it as soon as possible.</strong>
-<?php }} ?>
-											</span>
-										</a>
-									</li>
+                        <li class="unread notification-danger">
+                            <a href="#">
+                                <i class="entypo-cancel-circled pull-right"></i>
+                                <span class="line">
+<?php if ($currentUsername === 'vk') { ?>
+                                    <strong><?php echo htmlspecialchars($gName, ENT_QUOTES, 'UTF-8'); ?> has expired. Please remind user to renew.</strong>
+<?php } else { ?>
+                                    <strong>Your plan has expired for <?php echo htmlspecialchars($gName, ENT_QUOTES, 'UTF-8'); ?>. Please Renew it as soon as possible.</strong>
+<?php } ?>
+                                </span>
+                            </a>
+                        </li>
 <?php
-}// end else if differenece is zero
-else{
-
-}
-
-}
-}
+            }
+        }
+    }
 }
 ?>									
-								</ul>
-							</li>
-							
-						</ul>
-		
-					</li>
-		
-				</ul>
-		
-			</div>
-			<!-- Raw Links -->
-			<div class="col-md-6 col-sm-4 clearfix hidden-xs">
-		
-				<ul class="list-inline links-list pull-right">
-		
-					<li>
-						<a href="logout.php">
-							Log Out <i class="entypo-logout right"></i>
-						</a>
-					</li>
-				</ul>
-		
-			</div>
+                    </ul>
+                </li>
+            </ul>
+        </li>
+    </ul>
+</div>
+
+<!-- Raw Links -->
+<div class="col-md-6 col-sm-4 clearfix hidden-xs">
+    <ul class="list-inline links-list pull-right">
+        <li>
+            <a href="logout.php">
+                Log Out <i class="entypo-logout right"></i>
+            </a>
+        </li>
+    </ul>
+</div>

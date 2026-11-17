@@ -1,10 +1,20 @@
 <?php
-header('Content-Type: application/json');
+declare(strict_types=1);
+
+header('Content-Type: application/json; charset=UTF-8');
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(204);
+    exit;
+}
 
 // File paths
-$file1 = "../txtdb/main_original_sl.txt";
-$file2 = "../txtdb/mr_star_line_results.txt";
-$file3 = "../txtdb/main_bombay_36_results.txt";
+$file1 = __DIR__ . "/../txtdb/main_original_sl.txt";
+$file2 = __DIR__ . "/../txtdb/mr_star_line_results.txt";
+$file3 = __DIR__ . "/../txtdb/main_bombay_36_results.txt";
 
 // Labels
 $sl1_time_labels = [
@@ -31,16 +41,17 @@ $sl3_time_labels = [
     "07:00 PM", "07:15 PM", "07:30 PM", "07:45 PM"
 ];
 
-// Function to read file and return trimmed lines
-function getResults($filePath) {
-    if (!file_exists($filePath)) {
+function getResults(string $filePath): array {
+    if (!file_exists($filePath) || !is_readable($filePath)) {
         return [];
     }
     $lines = file($filePath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-    return array_map('trim', $lines);
+    if (!is_array($lines)) {
+        return [];
+    }
+    return array_values(array_map('trim', $lines));
 }
 
-// Prepare data
 $data = [
     [
         "heading" => "Main Starline",
@@ -59,6 +70,4 @@ $data = [
     ]
 ];
 
-// Output JSON
 echo json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-?>
