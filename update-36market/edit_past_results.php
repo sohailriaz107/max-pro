@@ -1,10 +1,10 @@
 <?php
-//ini_set('display_errors', 1);
-//error_reporting(E_ALL);
-//mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+declare(strict_types=1);
 
-session_start();
-include('../config.php');
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+require_once '../config.php';
 
 // Redirect if not logged in
 if (!isset($_SESSION['admin'])) {
@@ -31,22 +31,26 @@ $selected_date = "";
 
 // Load existing data
 if (isset($_POST['load_date'])) {
-    $selected_date = trim($_POST['game_date']);
+    $rawDate = trim((string)($_POST['game_date'] ?? ''));
 
-    if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $selected_date)) {
+    if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $rawDate)) {
+        $selected_date = $rawDate;
         $stmt = mysqli_prepare($con, "SELECT * FROM main_bombay_36 WHERE game_date = ?");
-        mysqli_stmt_bind_param($stmt, "s", $selected_date);
-        mysqli_stmt_execute($stmt);
-        $result = mysqli_stmt_get_result($stmt);
+        if ($stmt) {
+            mysqli_stmt_bind_param($stmt, "s", $selected_date);
+            mysqli_stmt_execute($stmt);
+            $result = mysqli_stmt_get_result($stmt);
 
-        if (mysqli_num_rows($result) > 0) {
-            $row = mysqli_fetch_assoc($result);
-            for ($i = 1; $i <= 36; $i++) {
-                $results[$i - 1] = $row["col$i"] ?? '';
+            if ($result && mysqli_num_rows($result) > 0) {
+                $row = mysqli_fetch_assoc($result);
+                for ($i = 1; $i <= 36; $i++) {
+                    $results[$i - 1] = (string)($row["col$i"] ?? '');
+                }
+                $message = "<div class='alert alert-info'>Results loaded for " . htmlspecialchars($selected_date, ENT_QUOTES, 'UTF-8') . ".</div>";
+            } else {
+                $message = "<div class='alert alert-warning'>No results found for " . htmlspecialchars($selected_date, ENT_QUOTES, 'UTF-8') . ".</div>";
             }
-            $message = "<div class='alert alert-info'>Results loaded for $selected_date.</div>";
-        } else {
-            $message = "<div class='alert alert-warning'>No results found for $selected_date.</div>";
+            mysqli_stmt_close($stmt);
         }
     } else {
         $message = "<div class='alert alert-danger'>Invalid date format.</div>";
@@ -55,38 +59,51 @@ if (isset($_POST['load_date'])) {
 
 // Update results securely
 if (isset($_POST['update_results'])) {
-    $selected_date = trim($_POST['game_date']);
-    $update_parts = [];
-    $values = [];
+    $rawDate = trim((string)($_POST['game_date'] ?? ''));
 
-    for ($i = 1; $i <= 36; $i++) {
-        $col = "col$i";
-        $val = trim($_POST[$col]);
+    if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $rawDate)) {
+        $message = "<div class='alert alert-danger'>Invalid date format.</div>";
+    } else {
+        $selected_date = $rawDate;
+        $update_parts = [];
+        $values = [];
 
-        if (!empty($val) && !preg_match('/^\d{3}-\d{1}$/', $val)) {
-            $message = "<div class='alert alert-danger'>Invalid format in Box $i: '$val'. Format should be 123-4 or blank.</div>";
-            break;
+        for ($i = 1; $i <= 36; $i++) {
+            $col = "col$i";
+            $val = trim((string)($_POST[$col] ?? ''));
+
+            if ($val !== '' && !preg_match('/^\d{3}-\d{1}$/', $val)) {
+                $message = "<div class='alert alert-danger'>Invalid format in Box $i: '" . htmlspecialchars($val, ENT_QUOTES, 'UTF-8') . "'. Format should be 123-4 or blank.</div>";
+                break;
+            }
+
+            $update_parts[] = "`$col` = ?";
+            $values[] = ($val === '') ? null : $val;
+            $results[$i - 1] = $val;
         }
 
-        $update_parts[] = "`$col` = ?";
-        $values[] = $val === '' ? null : $val;
-    }
+        if (empty($message)) {
+            $types = str_repeat("s", count($values));
+            $query = "UPDATE main_bombay_36 SET " . implode(", ", $update_parts) . " WHERE game_date = ?";
+            $values[] = $selected_date;
+            $types .= "s";
 
-    if (empty($message)) {
-        $types = str_repeat("s", count($values));
-        $query = "UPDATE main_bombay_36 SET " . implode(", ", $update_parts) . " WHERE game_date = ?";
-        $values[] = $selected_date;
-        $types .= "s";
-
-        $stmt = mysqli_prepare($con, $query);
-        mysqli_stmt_bind_param($stmt, $types, ...$values);
-        mysqli_stmt_execute($stmt);
-
-        $message = "<div class='alert alert-success'>Results updated successfully for $selected_date.</div>";
+            $stmt = mysqli_prepare($con, $query);
+            if ($stmt) {
+                mysqli_stmt_bind_param($stmt, $types, ...$values);
+                if (mysqli_stmt_execute($stmt)) {
+                    $message = "<div class='alert alert-success'>Results updated successfully for " . htmlspecialchars($selected_date, ENT_QUOTES, 'UTF-8') . ".</div>";
+                } else {
+                    $message = "<div class='alert alert-danger'>Update failed.</div>";
+                }
+                mysqli_stmt_close($stmt);
+            } else {
+                $message = "<div class='alert alert-danger'>Database prepare error.</div>";
+            }
+        }
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -108,7 +125,7 @@ if (isset($_POST['update_results'])) {
             <div class="row g-2 align-items-end">
                 <div class="col-sm-6">
                     <label>Select Game Date</label>
-                    <input type="date" name="game_date" value="<?= htmlspecialchars($selected_date) ?>" class="form-control" required>
+                    <input type="date" name="game_date" value="<?= htmlspecialchars($selected_date, ENT_QUOTES, 'UTF-8') ?>" class="form-control" required>
                 </div>
                 <div class="col-sm-3">
                     <button type="submit" name="load_date" class="btn btn-danger">Load Results</button>
@@ -119,12 +136,12 @@ if (isset($_POST['update_results'])) {
         <!-- Results Editor -->
         <?php if (!empty($selected_date) && $results !== array_fill(0, 36, '')): ?>
             <form method="post" class="bg-white p-4 shadow-sm rounded mb-4">
-                <input type="hidden" name="game_date" value="<?= htmlspecialchars($selected_date) ?>">
+                <input type="hidden" name="game_date" value="<?= htmlspecialchars($selected_date, ENT_QUOTES, 'UTF-8') ?>">
                 <div class="row">
                     <?php for ($i = 1; $i <= 36; $i++): ?>
                         <div class="col-12 col-md-6 mb-3">
-                            <label class="form-label"><?= $i ?>. <?= $time_labels[$i - 1] ?></label>
-                            <input type="text" name="col<?= $i ?>" value="<?= htmlspecialchars($results[$i - 1]) ?>"
+                            <label class="form-label"><?= $i ?>. <?= htmlspecialchars($time_labels[$i - 1], ENT_QUOTES, 'UTF-8') ?></label>
+                            <input type="text" name="col<?= $i ?>" value="<?= htmlspecialchars((string)$results[$i - 1], ENT_QUOTES, 'UTF-8') ?>"
                                 class="form-control" pattern="^\d{3}-\d{1}$" title="Format must be 123-4 or leave blank">
                         </div>
                     <?php endfor; ?>

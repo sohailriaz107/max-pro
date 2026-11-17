@@ -1,18 +1,15 @@
 <?php
-ini_set('display_errors',1);
-error_reporting(E_ALL);
-mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+declare(strict_types=1);
 
-
-// show-results.php
-include('../config.php');
+require_once '../config.php';
 
 // Cache settings
-$cache_file = '../cache/show-results-cache.html';
+$cache_dir = '../cache';
+$cache_file = $cache_dir . '/show-results-cache.html';
 $cache_time = 600; // 10 minutes
 
 // Serve cache if fresh
-if (file_exists($cache_file) && (time() - filemtime($cache_file)) < $cache_time) {
+if (file_exists($cache_file) && (time() - (int)filemtime($cache_file)) < $cache_time) {
     readfile($cache_file);
     exit;
 }
@@ -36,8 +33,9 @@ $time_labels = [
 $result = mysqli_query($con, "SELECT * FROM main_bombay_36 ORDER BY game_date DESC");
 ?>
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="utf-8">
     <title>Main Bombay 36 Results</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -59,26 +57,31 @@ $result = mysqli_query($con, "SELECT * FROM main_bombay_36 ORDER BY game_date DE
 </head>
 <body>
     <div class="container-fluid py-3">
-        <?php while ($row = mysqli_fetch_assoc($result)): ?>
-            <div class="result-table">
-                <div class="result-date">
-                    <?= date('F j, Y', strtotime($row['game_date'])) ?>
-                </div>
-                <div class="result-grid">
-                    <?php for ($i = 1; $i <= 36; $i++): ?>
-                        <div class="result-cell">
-                            <div class="time-label"><?= $time_labels[$i - 1] ?></div>
-                            <div class="game-value">
-                                <?= htmlspecialchars($row['col' . $i]) ?: '***' ?>
+        <?php if ($result): ?>
+            <?php while ($row = mysqli_fetch_assoc($result)): ?>
+                <?php
+                $ts = strtotime((string)($row['game_date'] ?? ''));
+                $date_str = $ts !== false ? date('F j, Y', $ts) : (string)($row['game_date'] ?? '');
+                ?>
+                <div class="result-table">
+                    <div class="result-date">
+                        <?= htmlspecialchars($date_str, ENT_QUOTES, 'UTF-8') ?>
+                    </div>
+                    <div class="result-grid">
+                        <?php for ($i = 1; $i <= 36; $i++): ?>
+                            <div class="result-cell">
+                                <div class="time-label"><?= htmlspecialchars((string)($time_labels[$i - 1] ?? ''), ENT_QUOTES, 'UTF-8') ?></div>
+                                <div class="game-value">
+                                    <?php $cell_val = trim((string)($row['col' . $i] ?? '')); ?>
+                                    <?= $cell_val !== '' ? htmlspecialchars($cell_val, ENT_QUOTES, 'UTF-8') : '***' ?>
+                                </div>
                             </div>
-                        </div>
-
-                        
-                
-                    <?php endfor; ?>
+                        <?php endfor; ?>
+                    </div>
                 </div>
-            </div>
-        <?php endwhile; ?>
+            <?php endwhile; ?>
+            <?php mysqli_free_result($result); ?>
+        <?php endif; ?>
 
         
 
@@ -53222,6 +53225,11 @@ $result = mysqli_query($con, "SELECT * FROM main_bombay_36 ORDER BY game_date DE
 </body>
 </html>
 <?php
-// Save cache
-file_put_contents($cache_file, ob_get_contents());
+$html = (string)ob_get_contents();
 ob_end_flush();
+
+if (!is_dir($cache_dir)) {
+    @mkdir($cache_dir, 0755, true);
+}
+@file_put_contents($cache_file, $html, LOCK_EX);
+

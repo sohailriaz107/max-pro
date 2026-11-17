@@ -1,6 +1,10 @@
 <?php
-session_start();
-include('../config.php');
+declare(strict_types=1);
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+require_once '../config.php';
 
 date_default_timezone_set('Asia/Kolkata');
 
@@ -10,7 +14,9 @@ if (!isset($_SESSION['admin'])) {
 }
 
 if (isset($_GET['logout'])) {
-    session_destroy();
+    if (session_status() === PHP_SESSION_ACTIVE) {
+        session_destroy();
+    }
     header("Location: index.php");
     exit;
 }
@@ -18,14 +24,14 @@ if (isset($_GET['logout'])) {
 $TABLE = "mumbai_standard_single_khech";
 $txt_path = '../txtdb/mumbai_standard_single_khech.txt';
 
-function generateTimeSlots($start = '11:00', $end = '19:00', $interval = 5)
+function generateTimeSlots(string $start = '11:00', string $end = '19:00', int $interval = 5): array
 {
     $slots = [];
 
     $current = strtotime($start);
     $endTime = strtotime($end);
 
-    while ($current < $endTime) {
+    while ($current !== false && $endTime !== false && $current < $endTime) {
         $slots[] = date('h:i A', $current);
         $current = strtotime("+{$interval} minutes", $current);
     }
@@ -37,10 +43,10 @@ $time_labels = generateTimeSlots();
 $TOTAL_SLOTS = count($time_labels);
 
 if (!file_exists($txt_path)) {
-    file_put_contents($txt_path, '');
+    @file_put_contents($txt_path, '', LOCK_EX);
 }
 
-$results = file($txt_path, FILE_IGNORE_NEW_LINES);
+$results = file_exists($txt_path) ? (file($txt_path, FILE_IGNORE_NEW_LINES) ?: []) : [];
 
 if (count($results) < $TOTAL_SLOTS) {
     $results = array_pad($results, $TOTAL_SLOTS, '');
@@ -52,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     for ($i = 0; $i < $TOTAL_SLOTS; $i++) {
 
-        $value = trim($_POST['col'][$i] ?? '');
+        $value = trim((string)($_POST['col'][$i] ?? ''));
 
         if ($value !== '' && !preg_match('/^[0-9]$/', $value)) {
             $message = "
@@ -69,7 +75,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         file_put_contents(
             $txt_path,
-            implode(PHP_EOL, $results)
+            implode(PHP_EOL, $results),
+            LOCK_EX
         );
 
         $today = date('Y-m-d');
@@ -81,66 +88,53 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             "SELECT id FROM $TABLE WHERE game_date=?"
         );
 
-        mysqli_stmt_bind_param($check, "s", $today);
-        mysqli_stmt_execute($check);
-        mysqli_stmt_store_result($check);
+        if ($check) {
+            mysqli_stmt_bind_param($check, "s", $today);
+            mysqli_stmt_execute($check);
+            mysqli_stmt_store_result($check);
+            $hasRow = mysqli_stmt_num_rows($check) > 0;
+            mysqli_stmt_close($check);
 
-        if (mysqli_stmt_num_rows($check) > 0) {
+            if ($hasRow) {
+                $stmt = mysqli_prepare(
+                    $con,
+                    "UPDATE $TABLE SET results=? WHERE game_date=?"
+                );
+                if ($stmt) {
+                    mysqli_stmt_bind_param($stmt, "ss", $json_results, $today);
+                    mysqli_stmt_execute($stmt);
+                    mysqli_stmt_close($stmt);
+                }
+            } else {
+                $stmt = mysqli_prepare(
+                    $con,
+                    "INSERT INTO $TABLE(game_date, results) VALUES(?, ?)"
+                );
+                if ($stmt) {
+                    mysqli_stmt_bind_param($stmt, "ss", $today, $json_results);
+                    mysqli_stmt_execute($stmt);
+                    mysqli_stmt_close($stmt);
+                }
+            }
 
-            $stmt = mysqli_prepare(
-                $con,
-                "UPDATE $TABLE SET results=? WHERE game_date=?"
-            );
-
-            mysqli_stmt_bind_param(
-                $stmt,
-                "ss",
-                $json_results,
-                $today
-            );
-
-        } else {
-
-            $stmt = mysqli_prepare(
-                $con,
-                "INSERT INTO $TABLE(game_date, results)
-                VALUES(?, ?)"
-            );
-
-            mysqli_stmt_bind_param(
-                $stmt,
-                "ss",
-                $today,
-                $json_results
-            );
+            $message = "
+            <div class='alert alert-success'>
+                Results Updated Successfully
+            </div>";
         }
-
-        mysqli_stmt_execute($stmt);
-
-        $message = "
-        <div class='alert alert-success'>
-            Results Updated Successfully
-        </div>";
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html>
 <head>
-
     <title>Mumbai Standard Single Khech Admin</title>
-
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
     <style>
-
         body{
             background:#f5f5f5;
         }
-
         .result-box{
             border-radius:10px;
             background:#fff;
@@ -148,97 +142,65 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             box-shadow:0 2px 10px rgba(0,0,0,0.08);
             height:100%;
         }
-
         .time-label{
             font-size:13px;
             font-weight:bold;
             margin-bottom:8px;
             color:#dc3545;
         }
-
         .slot-input{
             text-align:center;
             font-size:20px;
             font-weight:bold;
             height:55px;
         }
-
     </style>
-
 </head>
-
 <body>
 
 <div class="container-fluid py-3">
-
     <div class="d-flex justify-content-between align-items-center mb-3">
-
         <h3 class="mb-0">
             Mumbai Standard Single Khech
         </h3>
-
         <div>
-
-            <a href="edit_past_results.php"
-               class="btn btn-dark btn-sm">
+            <a href="edit_past_results.php" class="btn btn-dark btn-sm">
                 Edit Past Results
             </a>
-
-            <a href="?logout=1"
-               class="btn btn-danger btn-sm">
+            <a href="?logout=1" class="btn btn-danger btn-sm">
                 Logout
             </a>
-
         </div>
-
     </div>
 
     <?= $message ?>
 
-    <form method="post">
-
+    <form method="post" action="">
         <div class="row">
-
             <?php foreach($time_labels as $index => $time): ?>
-
                 <div class="col-6 col-md-3 col-lg-2 mb-3">
-
                     <div class="result-box">
-
                         <div class="time-label">
-                            <?= $time ?>
+                            <?= htmlspecialchars((string)$time, ENT_QUOTES, 'UTF-8') ?>
                         </div>
-
                         <input
                             type="text"
                             name="col[<?= $index ?>]"
                             maxlength="1"
                             class="form-control slot-input"
-                            value="<?= htmlspecialchars($results[$index]) ?>"
+                            value="<?= htmlspecialchars((string)($results[$index] ?? ''), ENT_QUOTES, 'UTF-8') ?>"
                         >
-
                     </div>
-
                 </div>
-
             <?php endforeach; ?>
-
         </div>
 
         <div class="text-center mt-4">
-
-            <button
-                type="submit"
-                class="btn btn-danger btn-lg px-5">
-
+            <button type="submit" class="btn btn-danger btn-lg px-5">
                 SAVE RESULTS
-
             </button>
-
         </div>
-
     </form>
-
 </div>
 
 </body>

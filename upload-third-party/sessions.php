@@ -1,18 +1,12 @@
-<?php 
+<?php
+declare(strict_types=1);
 
-if(0){
-// 10 mins in seconds
-$inactive = 600;  
-if(isset($_SESSION['timeout'])){
-$session_life = time() - $_SESSION['timeout'];
-if($session_life > $inactive) {
-   session_destroy();
-}}
-$_SESSION['timeout']=time();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
 }
+
 if (!isset($_SESSION['id'])) {
-  session_destroy();
-  header("location:index.php");
-  exit;
+    session_destroy();
+    header("Location: index.php");
+    exit;
 }
-?> 

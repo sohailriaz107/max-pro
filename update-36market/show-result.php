@@ -1,11 +1,7 @@
 <?php
-ini_set('display_errors',1);
-error_reporting(E_ALL);
-mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+declare(strict_types=1);
 
-
-// show-results.php
-include('../config.php');
+require_once '../config.php';
 
 // Cache settings
 $cache_file = '../cache/show-results-cache.html';
@@ -62,14 +58,14 @@ $result = mysqli_query($con, "SELECT * FROM main_bombay_36 ORDER BY game_date DE
         <?php while ($row = mysqli_fetch_assoc($result)): ?>
             <div class="result-table">
                 <div class="result-date">
-                    <?= date('F j, Y', strtotime($row['game_date'])) ?>
+                    <?= date('F j, Y', (int)strtotime((string)($row['game_date'] ?? ''))) ?>
                 </div>
                 <div class="result-grid">
                     <?php for ($i = 1; $i <= 36; $i++): ?>
                         <div class="result-cell">
-                            <div class="time-label"><?= $time_labels[$i - 1] ?></div>
+                            <div class="time-label"><?= htmlspecialchars((string)($time_labels[$i - 1] ?? ''), ENT_QUOTES, 'UTF-8') ?></div>
                             <div class="game-value">
-                                <?= htmlspecialchars($row['col' . $i]) ?: '***' ?>
+                                <?= htmlspecialchars((string)($row['col' . $i] ?? '')) ?: '***' ?>
                             </div>
                         </div>
 
@@ -53223,5 +53219,5 @@ $result = mysqli_query($con, "SELECT * FROM main_bombay_36 ORDER BY game_date DE
 </html>
 <?php
 // Save cache
-file_put_contents($cache_file, ob_get_contents());
+@file_put_contents($cache_file, (string)ob_get_contents(), LOCK_EX);
 ob_end_flush();
