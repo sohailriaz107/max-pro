@@ -1,0 +1,50 @@
+{
+    "tricks": [
+        {
+            "id": "cut_ank",
+            "category": "basic",
+            "cut_pairs": [
+                "1 ↔ 6",
+                "2 ↔ 7",
+                "3 ↔ 8",
+                "4 ↔ 9",
+                "5 ↔ 0"
+            ]
+        },
+        {
+            "id": "date_fix",
+            "category": "basic",
+            "cut_pairs": []
+        },
+        {
+            "id": "total_10",
+            "category": "pro",
+            "cut_pairs": []
+        },
+        {
+            "id": "cross_line",
+            "category": "pro",
+            "cut_pairs": []
+        },
+        {
+            "id": "golden_trick",
+            "category": "basic",
+            "cut_pairs": []
+        },
+        {
+            "id": "red_house",
+            "category": "basic",
+            "cut_pairs": []
+        },
+        {
+            "id": "tesla_logic",
+            "category": "pro",
+            "cut_pairs": []
+        },
+        {
+            "id": "motor_patti_formula",
+            "category": "pro",
+            "cut_pairs": []
+        }
+    ]
+}

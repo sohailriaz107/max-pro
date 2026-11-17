@@ -1,0 +1,109 @@
+{
+    "event": "result.declared",
+    "occurredAt": "2026-09-24T10:09:30+05:30",
+    "market": {
+        "name": "kalyan jackpot",
+        "date": "2026-09-24",
+        "startTime": "09:00:00",
+        "endTime": "01:00:00"
+    },
+    "result": {
+        "sessionNumber": 14,
+        "ank": 5,
+        "suit": "diamonds",
+        "declaredAt": "2026-09-24T10:09:30+05:30"
+    },
+    "results": [
+        {
+            "sessionNumber": 1,
+            "ank": 7,
+            "suit": "clubs",
+            "declaredAt": "2026-09-24T09:04:30+05:30"
+        },
+        {
+            "sessionNumber": 2,
+            "ank": 1,
+            "suit": "clubs",
+            "declaredAt": "2026-09-24T09:09:30+05:30"
+        },
+        {
+            "sessionNumber": 3,
+            "ank": 0,
+            "suit": "clubs",
+            "declaredAt": "2026-09-24T09:14:30+05:30"
+        },
+        {
+            "sessionNumber": 4,
+            "ank": 9,
+            "suit": "hearts",
+            "declaredAt": "2026-09-24T09:19:30+05:30"
+        },
+        {
+            "sessionNumber": 5,
+            "ank": 6,
+            "suit": "hearts",
+            "declaredAt": "2026-09-24T09:24:30+05:30"
+        },
+        {
+            "sessionNumber": 6,
+            "ank": 1,
+            "suit": "spades",
+            "declaredAt": "2026-09-24T09:29:30+05:30"
+        },
+        {
+            "sessionNumber": 7,
+            "ank": 5,
+            "suit": "diamonds",
+            "declaredAt": "2026-09-24T09:34:30+05:30"
+        },
+        {
+            "sessionNumber": 8,
+            "ank": 9,
+            "suit": "hearts",
+            "declaredAt": "2026-09-24T09:39:30+05:30"
+        },
+        {
+            "sessionNumber": 9,
+            "ank": 2,
+            "suit": "clubs",
+            "declaredAt": "2026-09-24T09:44:30+05:30"
+        },
+        {
+            "sessionNumber": 10,
+            "ank": 4,
+            "suit": "spades",
+            "declaredAt": "2026-09-24T09:49:30+05:30"
+        },
+        {
+            "sessionNumber": 11,
+            "ank": 8,
+            "suit": "clubs",
+            "declaredAt": "2026-09-24T09:54:30+05:30"
+        },
+        {
+            "sessionNumber": 12,
+            "ank": 5,
+            "suit": "hearts",
+            "declaredAt": "2026-09-24T09:59:30+05:30"
+        },
+        {
+            "sessionNumber": 13,
+            "ank": 2,
+            "suit": "spades",
+            "declaredAt": "2026-09-24T10:04:30+05:30"
+        },
+        {
+            "sessionNumber": 14,
+            "ank": 5,
+            "suit": "diamonds",
+            "declaredAt": "2026-09-24T10:09:30+05:30"
+        }
+    ],
+    "currentSession": {
+        "number": 15,
+        "status": "upcoming",
+        "startAt": "2026-09-24T10:10:00+05:30",
+        "endAt": "2026-09-24T10:14:30+05:30"
+    },
+    "_webhook_received_at": "2026-09-24T04:39:30+00:00"
+}
