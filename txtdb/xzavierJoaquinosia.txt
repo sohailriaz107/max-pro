@@ -1,6 +1,6 @@
-2|KALYAN MORNING|467-73-689|11:40|12:40|#ffcc99|#0000ff|#ed008e|7|7|35|23-09-2026|1|2052-07-26|kalyan-morning-chart.php|kalyan-morning-panel-chart.php|1790149546|0|
-3|MILAN MORNING|130-46-123|10:30|11:30|#000000|#000000|#000000|7|5|25|23-09-2026|1|2031-01-31|milan-morning-jodi.php|milan-morning-panel-chart.php|1790144195|0|
-1|SRIDEVI|146-19-388|11:35|12:35|#000000|#000000|#000000|7|5|30|23-09-2026|1|2030-01-31|sridevi-jodi-chart-record.php|sridevi-penal-chart-record.php|1790148181|0|
+2|KALYAN MORNING|467-73-689|11:40|12:40|#ffcc99|#0000ff|#ed008e|7|7|35|17-11-2026|1|2052-07-26|kalyan-morning-chart.php|kalyan-morning-panel-chart.php|1794897480|0|
+3|MILAN MORNING|130-46-123|10:30|11:30|#000000|#000000|#000000|7|5|25|17-11-2026|1|2031-01-31|milan-morning-jodi.php|milan-morning-panel-chart.php|1794897489|0|
+1|SRIDEVI|146-19-388|11:35|12:35|#000000|#000000|#000000|7|5|30|17-11-2026|1|2030-01-31|sridevi-jodi-chart-record.php|sridevi-penal-chart-record.php|1794894405|
 3|MAIN BAZAR MORNING|558-85-168|11:15|12:15|#000000|#000000|#000000|7|5|25|23-09-2026|1|2026-09-30|main-bazar-morning-chart.php|main-bazar-morning-panel-chart.php|1790146949|6|
 99|MADHURI|568-96-150|11:45|12:45|#ffcc99|#0000ff|#ed008e|7|10|30|23-09-2026|1|2029-12-31|madhuri-jodi-chart.php|madhuri-panel-chart.php|1790148198|0|
 4|SRIDEVI MORNING|789-41-236|10:10|11:10|#000000|#000000|#000000|7|5|25|23-09-2026|1|2027-06-30|sridevi-morning-jodi-chart.php|sridevi-morning-panel-chart.php|1790143532|0|
@@ -40,7 +40,7 @@
 5|OLD MUMBAI|890-75-168|21:45|23:30|#000000|#000000|#000000|7|5|25|23-09-2026|1|2026-10-01|#|#|1790186503|4|
 3|OLD MAIN MUMBAI|246-24-356|21:35|23:35|#000000|#000000|#000000|7|10|35|23-09-2026|1|2027-08-31|#|#|1790187130|2|
 5|MADHUR MORNING |678-19-577|11:30|12:30|#000000|#000000|#000000|7|4|40|23-09-2026|1|2026-09-30|madhur-morning-satta-matka-jodi-chart.php|madhur-morning-panel-chart.php|1790147606|0|
-3|MADHUR DAY|290-14-257|13:30|14:30|#000000|#000000|#000000|7|5|35|23-09-2026|1|2026-09-30|madhur-day-satta-matka-jodi-chart.php|madhur-day-panel-chart.php|1790155857|0|
+3|MADHUR DAY|290-14-257|13:30|14:30|#000000|#000000|#000000|7|5|35|17-11-2026|1|2026-09-30|madhur-day-satta-matka-jodi-chart.php|madhur-day-panel-chart.php|1794894264|0|
 4|MADHUR NIGHT|446-47-340|20:30|22:30|#000000|#000000|#000000|6|6|35|23-09-2026|1|2026-09-30|madhur-night-satta-matka-jodi-chart.php|madhur-night-panel-chart.php|1790183733|2|
 99|SHRI DAY|358-69-568|11:15|12:15|#000000|#000000|#000000|7|5|25|23-09-2026|1|2026-10-08|#|#|1790147189|0|
 99|SHRI NIGHT|170-85-348|20:25|22:25|#000000|#000000|#000000|7|5|25|23-09-2026|1|2026-10-08|#|#|1790182995|6|

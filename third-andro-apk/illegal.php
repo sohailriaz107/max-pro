@@ -1,9 +1,14 @@
 <?php 
-if (isset($_SESSION['firstname'])) {
-  if ($_SESSION['firstname']!='vk') {
-    header("location:index.php");
-    $_SESSION['illegal']='Illegal Activity Detected';
-    exit;
-  }
+declare(strict_types=1);
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
 }
-?>
+
+if (isset($_SESSION['firstname'])) {
+    if ($_SESSION['firstname'] !== 'vk') {
+        $_SESSION['illegal'] = 'Illegal Activity Detected';
+        header("Location: index.php");
+        exit;
+    }
+}
