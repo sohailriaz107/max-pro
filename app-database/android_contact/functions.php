@@ -968,7 +968,7 @@
 
 		while ($continue) {
 			$newid = genID(6);
-			//$query = mysql_query("SELECT * FROM poolzy_event WHERE random_number='".$newid."' LIMIT 1");
+			// Query check for existing random ID
 			$ph_where = "SELECT * FROM $table_name WHERE $field_name='".$newid."' LIMIT 1";
 			$dup_check = $db_obj->count_row($ph_where);
 			if ($dup_check != 1)

@@ -160,15 +160,11 @@ else {
 		
 			<!-- Profile Info and Notifications -->
 			<?php include 'header.php'; ?>
-		
-		
-			
-		
 		</div>
 		
 		<hr />
 		
-					
+			
 		<h2> <?php echo $msg; ?></h2>
 		<br />
 		
@@ -176,55 +172,59 @@ else {
 		<div class="row">
 			<div class="col-md-12">
 <?php 
-if (isset($_GET['chartId']) && is_numeric($_GET['chartId']) && $_GET['chartId'] > 0){
-$chartId = $_GET['chartId'];
-$query = mysqli_query($con,"SELECT * FROM panel WHERE id=$chartId") or die(mysql_error());
-$result = mysqli_fetch_array($query);
+if (isset($_GET['chartId']) && is_numeric($_GET['chartId']) && (int)$_GET['chartId'] > 0){
+$chartId = (int)$_GET['chartId'];
+$stmtChart = mysqli_prepare($con, "SELECT * FROM panel WHERE id = ? LIMIT 1");
+$result = null;
+if ($stmtChart) {
+    mysqli_stmt_bind_param($stmtChart, "i", $chartId);
+    mysqli_stmt_execute($stmtChart);
+    $res = mysqli_stmt_get_result($stmtChart);
+    $result = $res ? mysqli_fetch_assoc($res) : null;
+    mysqli_stmt_close($stmtChart);
+}
+if ($result) {
+    $resColor = htmlspecialchars((string)($result['color'] ?? ''), ENT_QUOTES, 'UTF-8');
 ?>
 <form method="post" action="">
 <table class="table table-bordered">
 <tr>
-	<td style="color:<?php echo $result['color'] ?>" width="100"><b>Game Name</b></td>
-	<td style="color:<?php echo $result['color'] ?>" colspan="3"><b><?php echo $result['gameName'] ?></b></td>
+	<td style="color:<?= $resColor ?>" width="100"><b>Game Name</b></td>
+	<td style="color:<?= $resColor ?>" colspan="3"><b><?= htmlspecialchars((string)($result['gameName'] ?? ''), ENT_QUOTES, 'UTF-8') ?></b></td>
 </tr>
 <tr>
-	<td style="color:<?php echo $result['color'] ?>"><b>Open Patti</b></td>
-	<td style="color:<?php echo $result['color'] ?>" width="100"><input type="text" name="a" class="form-control" value="<?php echo $result['a'] ?>"></td>
-	<td style="color:<?php echo $result['color'] ?>"><input type="text" name="b" class="form-control" value="<?php echo $result['b'] ?>"></td>
-	<td style="color:<?php echo $result['color'] ?>"><input type="text" name="c" class="form-control" value="<?php echo $result['c'] ?>"></td>
+	<td style="color:<?= $resColor ?>"><b>Open Patti</b></td>
+	<td style="color:<?= $resColor ?>" width="100"><input type="text" name="a" class="form-control" value="<?= htmlspecialchars((string)($result['a'] ?? ''), ENT_QUOTES, 'UTF-8') ?>"></td>
+	<td style="color:<?= $resColor ?>"><input type="text" name="b" class="form-control" value="<?= htmlspecialchars((string)($result['b'] ?? ''), ENT_QUOTES, 'UTF-8') ?>"></td>
+	<td style="color:<?= $resColor ?>"><input type="text" name="c" class="form-control" value="<?= htmlspecialchars((string)($result['c'] ?? ''), ENT_QUOTES, 'UTF-8') ?>"></td>
 </tr>
 <tr>
-	<td style="color:<?php echo $result['color'] ?>" colspan="1"><b>Jodi</b></td>
-	<td style="color:<?php echo $result['color'] ?>" colspan="3"><input type="text" name="d" class="form-control" value="<?php echo $result['d'] ?>"></td>
+	<td style="color:<?= $resColor ?>" colspan="1"><b>Jodi</b></td>
+	<td style="color:<?= $resColor ?>" colspan="3"><input type="text" name="d" class="form-control" value="<?= htmlspecialchars((string)($result['d'] ?? ''), ENT_QUOTES, 'UTF-8') ?>"></td>
 </tr>
 <tr>
-	<td style="color:<?php echo $result['color'] ?>"><b>Close Patti</b></td>
-	<td style="color:<?php echo $result['color'] ?>"><input type="text" name="e" class="form-control" value="<?php echo $result['e'] ?>"></td>
-	<td style="color:<?php echo $result['color'] ?>"><input type="text" name="f" class="form-control" value="<?php echo $result['f'] ?>"></td>
-	<td style="color:<?php echo $result['color'] ?>"><input type="text" name="g" class="form-control" value="<?php echo $result['g'] ?>"></td>
-</tr>
-<?php 
-// if (!empty($result['fromDate']) AND !empty($result['toDate'])) {
-?>
-<tr>
-	<td style="color:<?php echo $result['color'] ?>"><b>From Date</b></td>
-	<td style="color:<?php echo $result['color'] ?>" colspan="3"><input type="text" name="fromDate" class="form-control" value="<?php echo $result['fromDate'] ?>"></td>
+	<td style="color:<?= $resColor ?>"><b>Close Patti</b></td>
+	<td style="color:<?= $resColor ?>"><input type="text" name="e" class="form-control" value="<?= htmlspecialchars((string)($result['e'] ?? ''), ENT_QUOTES, 'UTF-8') ?>"></td>
+	<td style="color:<?= $resColor ?>"><input type="text" name="f" class="form-control" value="<?= htmlspecialchars((string)($result['f'] ?? ''), ENT_QUOTES, 'UTF-8') ?>"></td>
+	<td style="color:<?= $resColor ?>"><input type="text" name="g" class="form-control" value="<?= htmlspecialchars((string)($result['g'] ?? ''), ENT_QUOTES, 'UTF-8') ?>"></td>
 </tr>
 <tr>
-	<td style="color:<?php echo $result['color'] ?>"><b>To Date</b></td>
-	<td style="color:<?php echo $result['color'] ?>" colspan="3"><input type="text" name="toDate" class="form-control" value="<?php echo $result['toDate'] ?>">
-	</td>
+	<td style="color:<?= $resColor ?>"><b>From Date</b></td>
+	<td style="color:<?= $resColor ?>" colspan="3"><input type="text" name="fromDate" class="form-control" value="<?= htmlspecialchars((string)($result['fromDate'] ?? ''), ENT_QUOTES, 'UTF-8') ?>"></td>
 </tr>
-<?php //} ?>
-
+<tr>
+	<td style="color:<?= $resColor ?>"><b>To Date</b></td>
+	<td style="color:<?= $resColor ?>" colspan="3"><input type="text" name="toDate" class="form-control" value="<?= htmlspecialchars((string)($result['toDate'] ?? ''), ENT_QUOTES, 'UTF-8') ?>"></td>
+</tr>
 <tr>
 	<td colspan="4">
-		<input type="hidden" name="id" value="<?php echo $chartId; ?>"/>
-		<input type="submit" name="update" value="Update" class="btn btn-primary"></td>
+		<input type="hidden" name="id" value="<?= (int)$chartId ?>"/>
+		<input type="submit" name="update" value="Update" class="btn btn-primary">
+	</td>
 </tr>
 </table>	
 </form>
-<?php } ?>
+<?php } } ?>
 		<?php include 'footer.php' ?>
 	</div>
 	

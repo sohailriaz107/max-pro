@@ -1,10 +1,14 @@
 <?php
+declare(strict_types=1);
+
 /**
  * 5-Minute Game Webhook
  *
  * Receives JSON webhook data and saves the latest payload to:
  * txtdb/5_minut_jackpot.json
  */
+
+date_default_timezone_set('Asia/Kolkata');
 
 // ----------------------------------------------------
 // CONFIG
@@ -20,49 +24,39 @@ define(
     __DIR__ . '/txtdb/5_minut_jackpot.json'
 );
 
-
 // ----------------------------------------------------
 // RESPONSE HEADER
 // ----------------------------------------------------
 
 header('Content-Type: application/json; charset=utf-8');
 
-
 // ----------------------------------------------------
 // ONLY POST ALLOWED
 // ----------------------------------------------------
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-
+if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
     http_response_code(405);
-
     echo json_encode([
         'success' => false,
         'message' => 'Method Not Allowed'
     ]);
-
     exit;
 }
-
 
 // ----------------------------------------------------
 // CHECK WEBHOOK SECRET
 // ----------------------------------------------------
 
-$received_secret = $_SERVER['HTTP_X_WEBHOOK_SECRET'] ?? '';
+$received_secret = (string)($_SERVER['HTTP_X_WEBHOOK_SECRET'] ?? '');
 
 if (!hash_equals(WEBHOOK_SECRET, $received_secret)) {
-
     http_response_code(401);
-
     echo json_encode([
         'success' => false,
         'message' => 'Unauthorized'
     ]);
-
     exit;
 }
-
 
 // ----------------------------------------------------
 // GET RAW JSON DATA
@@ -70,38 +64,30 @@ if (!hash_equals(WEBHOOK_SECRET, $received_secret)) {
 
 $raw_data = file_get_contents('php://input');
 
-if ($raw_data === false || trim($raw_data) === '') {
-
+if ($raw_data === false || trim((string)$raw_data) === '') {
     http_response_code(400);
-
     echo json_encode([
         'success' => false,
         'message' => 'Empty request body'
     ]);
-
     exit;
 }
-
 
 // ----------------------------------------------------
 // DECODE JSON
 // ----------------------------------------------------
 
-$data = json_decode($raw_data, true);
+$data = json_decode((string)$raw_data, true);
 
 if (json_last_error() !== JSON_ERROR_NONE || !is_array($data)) {
-
     http_response_code(400);
-
     echo json_encode([
         'success' => false,
         'message' => 'Invalid JSON',
         'error'   => json_last_error_msg()
     ]);
-
     exit;
 }
-
 
 // ----------------------------------------------------
 // OPTIONAL: CHECK EVENT
@@ -113,21 +99,17 @@ $allowed_events = [
     'market.ended'
 ];
 
-$event = $data['event'] ?? '';
+$event = (string)($data['event'] ?? '');
 
 if (!in_array($event, $allowed_events, true)) {
-
     http_response_code(400);
-
     echo json_encode([
         'success' => false,
         'message' => 'Unknown event',
         'event'   => $event
     ]);
-
     exit;
 }
-
 
 // ----------------------------------------------------
 // CHECK DATA DIRECTORY
@@ -136,29 +118,21 @@ if (!in_array($event, $allowed_events, true)) {
 $directory = dirname(JSON_FILE);
 
 if (!is_dir($directory)) {
-
     if (!mkdir($directory, 0755, true)) {
-
         http_response_code(500);
-
         echo json_encode([
             'success' => false,
             'message' => 'Unable to create data directory'
         ]);
-
         exit;
     }
 }
 
-
 // ----------------------------------------------------
 // ADD SERVER RECEIVED TIME
 // ----------------------------------------------------
-// This does not modify the original webhook data.
-// It helps you know when your server received it.
 
 $data['_webhook_received_at'] = date('c');
-
 
 // ----------------------------------------------------
 // CONVERT TO JSON
@@ -172,24 +146,18 @@ $json = json_encode(
 );
 
 if ($json === false) {
-
     http_response_code(500);
-
     echo json_encode([
         'success' => false,
         'message' => 'Unable to encode JSON',
         'error'   => json_last_error_msg()
     ]);
-
     exit;
 }
-
 
 // ----------------------------------------------------
 // SAVE FILE ATOMICALLY
 // ----------------------------------------------------
-// LOCK_EX prevents simultaneous webhook requests
-// from corrupting the JSON file.
 
 $result = file_put_contents(
     JSON_FILE,
@@ -198,17 +166,13 @@ $result = file_put_contents(
 );
 
 if ($result === false) {
-
     http_response_code(500);
-
     echo json_encode([
         'success' => false,
         'message' => 'Unable to save webhook data'
     ]);
-
     exit;
 }
-
 
 // ----------------------------------------------------
 // SUCCESS
@@ -221,6 +185,4 @@ echo json_encode([
     'message' => 'Webhook received and saved',
     'event'   => $event
 ]);
-
 exit;
-?>

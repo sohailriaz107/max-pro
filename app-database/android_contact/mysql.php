@@ -4,51 +4,31 @@
 	function connectDB(){
 		$status			=	false;
 		$err_code		=	null;
+		$err_no			=	null;
 		$err_msg		=	null;
+		$err_dmsg		=	null;
+		$db				=	null;
 		
-		switch(S3_DB_CONN){
-			case "pdo":
-				try {
-					$db		=	new PDO(
-						S3_DB_TYPE.':host='.
-							S3_DB_HOST.';dbname='.
-							S3_DB_NAME,
-						S3_DB_USER, S3_DB_PASS,
-						array(PDO::ATTR_PERSISTENT => true)
-					);
-					$GLOBALS['db']	=	$db;
-					$status			=	true;
-				}
-				catch(PDOException $e){
-					$status			=	false;
-					$err_data		=	_error_pdo($e->getMessage());
-					$err_code		=	$err_data['code'];
-					$err_no			=	$err_data['no'];
-					$err_msg		=	$err_data['msg'];
-					$err_dmsg		=	($err_code == 'err1') ? "Error connecting to server ..."
-										: (($err_code == 'err2') ? "Error connecting to server ..."
-										: "Error connecting to server ...");
-				}
-			break;
-			default:
-				if($db = @mysql_connect(S3_DB_HOST, S3_DB_USER, S3_DB_PASS)){
-					if($db_conn = @mysql_select_db(S3_DB_NAME, $db)){
-						$status			=	true;
-					}
-					else{
-						$err_code	=	'err2';
-						$err_dmsg	=	"Error connecting to server ...";
-						$err_no		=	@mysql_errno($db);
-						$err_msg	=	@mysql_error($db);
-					}
-				}
-				else{
-					$err_code	=	'err1';
-					$err_dmsg	=	"Error connecting to server ...";
-					$err_no		=	@mysql_errno();
-					$err_msg	=	@mysql_error();
-				}
-			break;
+		try {
+			$db		=	new PDO(
+				S3_DB_TYPE.':host='.
+					S3_DB_HOST.';dbname='.
+					S3_DB_NAME,
+				S3_DB_USER, S3_DB_PASS,
+				array(PDO::ATTR_PERSISTENT => true)
+			);
+			$GLOBALS['db']	=	$db;
+			$status			=	true;
+		}
+		catch(PDOException $e){
+			$status			=	false;
+			$err_data		=	_error_pdo($e->getMessage());
+			$err_code		=	$err_data['code'];
+			$err_no			=	$err_data['no'];
+			$err_msg		=	$err_data['msg'];
+			$err_dmsg		=	($err_code == 'err1') ? "Error connecting to server ..."
+								: (($err_code == 'err2') ? "Error connecting to server ..."
+								: "Error connecting to server ...");
 		}
 		
 		define("S3_DB_STATUS",			$status);
@@ -61,8 +41,7 @@
 	}
 	
 	function _query($sql, $type='', $startNode='', $nodeCase=''){
-		$db_func	=	(S3_DB_CONN == 'pdo')?'_query_pdo':'_query_regular';
-		return $db_func($sql, $type, $startNode, $nodeCase);
+		return _query_pdo($sql, $type, $startNode, $nodeCase);
 	}
 	
 	function _q($sql, $type='', $startNode='', $nodeCase=''){
@@ -213,115 +192,7 @@
 	}
 	
 	function _query_regular($sql, $type='', $startNode='', $nodeCase=''){
-		$db				=	$GLOBALS['db'];
-		$db_output		=	array();
-		$SN				=	($startNode)?$startNode:"mysql";
-		$xml_output		=	"<$SN>";
-		$is_select		=	false;
-		$is_insert		=	false;
-		$is_update		=	false;
-		$is_delete		=	false;
-		
-		if($sql){
-			$db_output['sql']	=	$sql;
-			$xml_output			.=	"<sql>".$sql."</sql>";
-			
-			// Split the query by words
-			$spl_sql			=	preg_split("/[ \n\t\r]/", $sql, -1, PREG_SPLIT_NO_EMPTY);
-			if(count($spl_sql) > 0){
-				switch(strtolower($spl_sql[0])){
-					case "select": $is_select = true; break;
-					case "insert": $is_insert = true; break;
-					case "update": $is_update = true; break;
-					case "delete": $is_delete = true; break;
-				}
-			}
-			
-			if(S3_DB_STATUS){
-				if($query = @mysql_query($sql, $db)){
-					if(@mysql_num_rows($query) > 0){
-						$db_output['count']		=	@mysql_num_rows($query);
-						$db_output['data']		=	array();
-						$xml_output				.=	"<count>".$db_output['count']."</count>";
-						$xml_output				.=	"<data>";
-						while($data = @mysql_fetch_array($query, MYSQL_ASSOC)){
-							$keys			=	array_keys($data);
-							$ndata			=	array();
-							if(count($keys) > 0){
-								for($k=0; $k<count($keys); $k++){
-									if(preg_match("/\(/", $keys[$k])){
-										$data_key	=	split("\(", $keys[$k]);
-										$data_key	=	split("\)", $data_key[count($data_key)-1]);
-										$data_key	=	$data_key[0];
-										
-										if(preg_match("/\./", $data_key)){
-											$data_key	=	split("\.", $data_key);
-											$data_key	=	$data_key[count($data_key)-1];
-										}
-									}
-									else{
-										$data_key	=	$keys[$k];
-									}
-									
-									switch(strtolower($nodeCase)){
-										case "lower":
-										case "lowercase":
-											$data_key	=	@strtolower($data_key);
-										break;
-										case "upper":
-										case "uppercase":
-											$data_key	=	@strtoupper($data_key);
-										break;
-									}
-									
-									$ndata[$data_key]	=	$data[$keys[$k]];
-								}
-								$data		=	$ndata;
-								$keys		=	array_keys($data);
-							}
-							
-							// Array Data
-							array_push($db_output['data'], $data);
-							
-							// Xml Data
-							$xml_output			.=	"<row>";
-							for($k=0; $k<count($keys); $k++){
-								$xml_output		.=	"<".$keys[$k].">".$data[$keys[$k]]."</".$keys[$k].">";
-							}
-							$xml_output			.=	"</row>";
-						};
-						$xml_output				.=	"</data>";
-					}
-					$db_output['status']	=	"success";
-				}
-				else{
-					$db_output['status']	=	"err3";
-				}
-			}
-			else{
-				$db_output['status']	=	S3_DB_ERR_CODE;
-			}
-			
-			$db_output['errno']		=	(S3_DB_ERR_NO)?S3_DB_ERR_NO:@mysql_errno($db);
-			$db_output['errtxt']	=	(S3_DB_ERR_MSG)?S3_DB_ERR_MSG:@mysql_error($db);
-			$xml_output				.=	"<status>".$db_output['status']."</status>";
-			$xml_output				.=	"<errno>".$db_output['errno']."</errno>";
-			$xml_output				.=	"<errtxt>".urlencode($db_output['errtxt'])."</errtxt>";
-			
-			if($db_output['status'] == 'success'){
-			$db_output['affected_rows']	=	@mysql_affected_rows($db);
-			$xml_output				.=	"<affected_rows>".urlencode($db_output['affected_rows'])."</affected_rows>";
-			}
-			
-			if($is_insert){
-			$db_output['insert_id']	=	@mysql_insert_id($db);
-			$xml_output				.=	"<insert_id>".urlencode($db_output['insert_id'])."</insert_id>";
-			}
-			
-			$xml_output				.=	"</$SN>
-			";
-			return ($type == "xml")?$xml_output:(($type=="both")?array('arr'=>$db_output, 'xml'=>$xml_output):$db_output);
-		}
+		return _query_pdo($sql, $type, $startNode, $nodeCase);
 	}
 	
 	function _query_var($arr, $var, $key=''){
